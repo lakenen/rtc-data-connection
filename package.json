@@ -1,0 +1,21 @@
+{
+  "name": "rtc-dataconnection",
+  "version": "0.0.1",
+  "description": "Simple wrapper around native RTCPeerConnnection data channels",
+  "main": "index",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/lakenen/rtc-dataconnection.git"
+  },
+  "author": {
+    "name": "Cameron Lakenen",
+    "email": "cameron.lakenen@gmail.com"
+  },
+  "license": {
+    "type": "MIT",
+    "url": "https://raw.github.com/lakenen/rtc-dataconnection/master/LICENSE"
+  },
+  "bugs": {
+    "url": "https://github.com/lakenen/rtc-dataconnection/issues"
+  }
+}
