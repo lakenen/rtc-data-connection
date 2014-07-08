@@ -1,17 +1,33 @@
-var util = require('util'),
-    EventEmitter = require('events').EventEmitter;
+var EventEmitter = require('eemitter');
+var global = window || this;
+var RTCPeerConnection     = global.RTCPeerConnection ||
+                            global.mozRTCPeerConnection ||
+                            global.webkitRTCPeerConnection;
+var RTCIceCandidate       = global.RTCIceCandidate ||
+                            global.mozRTCIceCandidate;
+var RTCSessionDescription = global.RTCSessionDescription ||
+                            global.mozRTCSessionDescription;
 
-var RTCPeerConnection     = window.RTCPeerConnection ||
-                            window.mozRTCPeerConnection ||
-                            window.webkitRTCPeerConnection;
-var RTCIceCandidate       = window.RTCIceCandidate ||
-                            window.mozRTCIceCandidate;
-var RTCSessionDescription = window.RTCSessionDescription ||
-                            window.mozRTCSessionDescription;
+// borrowed from https://github.com/HenrikJoreteg/RTCPeerConnection
+function applySdpHack(sdp) {
+    var parts = sdp.split('b=AS:30');
+    if (parts.length === 2) {
+        // increase max data transfer bandwidth to 100 Mbps
+        return parts[0] + 'b=AS:102400' + parts[1];
+    } else {
+        return sdp;
+    }
+}
 
-var defaults = {
+function RTCDataConnection() {
+    // todo: extend config
+    this.config = RTCDataConnection.defaults;
+    this._createConnection();
+}
+
+RTCDataConnection.defaults = {
     reliable: true,
-    config: {
+    pcConfig: {
         iceServers: [
             { url: 'stun:stun.l.google.com:19302' }
         ]
@@ -27,22 +43,9 @@ var defaults = {
     }
 };
 
-// borrowed from https://github.com/HenrikJoreteg/RTCPeerConnection
-function applySdpHack(sdp) {
-    var parts = sdp.split('b=AS:30');
-    if (parts.length === 2) {
-        // increase max data transfer bandwidth to 100 Mbps
-        return parts[0] + 'b=AS:102400' + parts[1];
-    } else {
-        return sdp;
-    }
-}
+RTCDataConnection.prototype = Object.create(EventEmitter.prototype);
+RTCDataConnection.prototype.constructor = RTCDataConnection;
 
-function RTCDataConnection() {
-    this._createConnection();
-}
-
-util.inherits(RTCDataConnection, EventEmitter);
 var RTCDataConnectionProto = RTCDataConnection.prototype;
 
 RTCDataConnectionProto.send = function (data) {
@@ -76,12 +79,12 @@ RTCDataConnectionProto.createAnswer = function () {
         dataConnection.emit('answer', description);
     }
     function createAnswerFail() {
-        console.error('could not create answer');
+        dataConnection.emit('error', new Error('could not create answer'));
     }
     this.peerConnection.createAnswer(
         createAnswerSuccess,
         createAnswerFail,
-        defaults.constraints
+        dataConnection.config.constraints
     );
 };
 
@@ -97,7 +100,7 @@ RTCDataConnectionProto.createOffer = function () {
         dataConnection.emit('offer', description);
     }
     function createOfferFail() {
-        console.error('failed to create offer');
+        dataConnection.emit('error', new Error('could not create offer'));
     }
 
     // the offering peer creates the datachannel
@@ -105,19 +108,19 @@ RTCDataConnectionProto.createOffer = function () {
     peerConnection.createOffer(
         createOfferSuccess,
         createOfferFail,
-        defaults.constraints
+        dataConnection.config.constraints
     );
 };
 
 RTCDataConnectionProto._createConnection = function() {
     var dataConnection = this,
         peerConnection = this.peerConnection;
-    this.peerConnection = new RTCPeerConnection(defaults.config, defaults.constraints);
+    this.peerConnection = new RTCPeerConnection(this.config.pcConfig, this.config.constraints);
     this.peerConnection.addEventListener('icecandidate', function handleICECandidate(event) {
         var candidate = event.candidate;
         if (candidate) {
-            // firefox can't JSON.stringify mozRTCIceCandidate objects apparently...
-            if (window.mozRTCPeerConnection) {
+            // firefox can't JSON.stringify mozRTCIceCandidate objects...
+            if (global.mozRTCPeerConnection) {
                 candidate = {
                     sdpMLineIndex: candidate.sdpMLineIndex,
                     sdpMid: candidate.sdpMid,
@@ -131,7 +134,7 @@ RTCDataConnectionProto._createConnection = function() {
     this.peerConnection.addEventListener('iceconnectionstatechange', function handleICEConnectionStateChange() {
         switch (this.iceConnectionState) {
             case 'connected':
-                // dataConnection.emit('connect');
+                dataConnection.emit('connect');
                 break;
 
             case 'closed':
@@ -153,7 +156,7 @@ RTCDataConnectionProto._createConnection = function() {
 
 RTCDataConnectionProto._createDataChannel = function () {
     this.dataChannel = this.peerConnection.createDataChannel('RTCDataConnection', {
-        reliable: defaults.reliable
+        reliable: this.config.reliable
     });
     this._setupDataChannel();
 };
@@ -167,8 +170,12 @@ RTCDataConnectionProto._setupDataChannel = function () {
         dataConnection.emit('close');
     });
     this.dataChannel.addEventListener('message', function (event) {
-        dataConnection.emit('message', event.data);
+        dataConnection._handleMessage(event.data);
     });
+};
+
+RTCDataConnectionProto._handleMessage = function (data) {
+    this.emit('message', data);
 };
 
 module.exports = RTCDataConnection;

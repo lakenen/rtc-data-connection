@@ -1,18 +1,19 @@
 # RTC Data Connection
 
-A slightly simplified and smoothed-over wrapper around the native WebRTC peer connection and data channels APIs. This is for data connections only - no audio/video streams. See [simple-rtc-dataconnection](https://github.com/lakenen/simple-rtc-dataconnection) for an even simpler version and example stuffs.
+A slightly simplified and smoothed-over wrapper around the native WebRTC peer connection and data channels APIs. This is for data connections only - no audio/video streams. See [simple-rtc-data-connection](https://github.com/lakenen/simple-rtc-data-connection) for an even simpler version and example stuffs.
 
 
 ## Installation
 
 ```
-npm install rtc-dataconnection
+npm install rtc-data-connection
 ```
 
 
 ## Usage
 
 ```
+var RTCDataConnection = require('rtc-data-connection');
 var dataConnection = new RTCDataConnection();
 
 dataConnection.on('offer', function (offer) {
@@ -53,6 +54,6 @@ dataConnection.createOffer();
 
 ## License
 
-(The MIT License)
+([The MIT License](LICENSE))
 
 Copyright 2014 Cameron Lakenen
