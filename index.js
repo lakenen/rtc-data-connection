@@ -46,30 +46,31 @@ RTCDataConnection.defaults = {
 RTCDataConnection.prototype = Object.create(EventEmitter.prototype);
 RTCDataConnection.prototype.constructor = RTCDataConnection;
 
-var RTCDataConnectionProto = RTCDataConnection.prototype;
 
-RTCDataConnectionProto.send = function (data) {
+RTCDataConnection.prototype.send = function (data) {
     if (this.dataChannel && this.dataChannel.readyState === 'open') {
         this.dataChannel.send(data);
     }
 };
 
-RTCDataConnectionProto.close = function () {
+RTCDataConnection.prototype.close = function () {
     if (this.dataChannel) {
         this.dataChannel.close();
     }
+    this.dataChannel = null;
     this.peerConnection.close();
+    this.peerConnection = null;
 };
 
-RTCDataConnectionProto.setDescription = function (description) {
+RTCDataConnection.prototype.setDescription = function (description) {
     this.peerConnection.setRemoteDescription(new RTCSessionDescription(description));
 };
 
-RTCDataConnectionProto.addCandidate = function (candidate) {
+RTCDataConnection.prototype.addCandidate = function (candidate) {
     this.peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
 };
 
-RTCDataConnectionProto.createAnswer = function () {
+RTCDataConnection.prototype.createAnswer = function () {
     var dataConnection = this,
         peerConnection = this.peerConnection;
     function createAnswerSuccess(description) {
@@ -88,7 +89,7 @@ RTCDataConnectionProto.createAnswer = function () {
     );
 };
 
-RTCDataConnectionProto.createOffer = function () {
+RTCDataConnection.prototype.createOffer = function () {
     // create a data channel for use with this offer
     var dataConnection = this,
         peerConnection = this.peerConnection;
@@ -112,9 +113,8 @@ RTCDataConnectionProto.createOffer = function () {
     );
 };
 
-RTCDataConnectionProto._createConnection = function() {
-    var dataConnection = this,
-        peerConnection = this.peerConnection;
+RTCDataConnection.prototype._createConnection = function() {
+    var dataConnection = this;
     this.peerConnection = new RTCPeerConnection(this.config.pcConfig, this.config.constraints);
     this.peerConnection.addEventListener('icecandidate', function handleICECandidate(event) {
         var candidate = event.candidate;
@@ -154,14 +154,14 @@ RTCDataConnectionProto._createConnection = function() {
     });
 };
 
-RTCDataConnectionProto._createDataChannel = function () {
+RTCDataConnection.prototype._createDataChannel = function () {
     this.dataChannel = this.peerConnection.createDataChannel('RTCDataConnection', {
         reliable: this.config.reliable
     });
     this._setupDataChannel();
 };
 
-RTCDataConnectionProto._setupDataChannel = function () {
+RTCDataConnection.prototype._setupDataChannel = function () {
     var dataConnection = this;
     this.dataChannel.addEventListener('open', function () {
         dataConnection.emit('open');
@@ -174,7 +174,7 @@ RTCDataConnectionProto._setupDataChannel = function () {
     });
 };
 
-RTCDataConnectionProto._handleMessage = function (data) {
+RTCDataConnection.prototype._handleMessage = function (data) {
     this.emit('message', data);
 };
 
