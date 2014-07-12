@@ -9,7 +9,6 @@ A slightly simplified and smoothed-over wrapper around the native WebRTC peer co
 npm install rtc-data-connection
 ```
 
-
 ## Usage
 
 ```
@@ -51,6 +50,10 @@ dataConnection.createOffer();
 
 ```
 
+
+## Using in node w/ wrtc
+
+This package was originally built for the browser, but it also works in node by leveraging the [wrtc](https://www.npmjs.org/package/wrtc) module. The module just needs to be installed and rtc-data-connection will use it.
 
 ## License
 

@@ -1,12 +1,8 @@
 var EventEmitter = require('eemitter');
-var global = window || this;
-var RTCPeerConnection     = global.RTCPeerConnection ||
-                            global.mozRTCPeerConnection ||
-                            global.webkitRTCPeerConnection;
-var RTCIceCandidate       = global.RTCIceCandidate ||
-                            global.mozRTCIceCandidate;
-var RTCSessionDescription = global.RTCSessionDescription ||
-                            global.mozRTCSessionDescription;
+var webrtc = require('./lib/webrtc');
+var RTCPeerConnection     = webrtc.RTCPeerConnection;
+var RTCIceCandidate       = webrtc.RTCIceCandidate;
+var RTCSessionDescription = webrtc.RTCSessionDescription;
 
 // borrowed from https://github.com/HenrikJoreteg/RTCPeerConnection
 function applySdpHack(sdp) {
