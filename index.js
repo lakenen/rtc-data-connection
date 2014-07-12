@@ -116,14 +116,6 @@ RTCDataConnection.prototype._createConnection = function() {
     this.peerConnection.addEventListener('icecandidate', function handleICECandidate(event) {
         var candidate = event.candidate;
         if (candidate) {
-            // firefox can't JSON.stringify mozRTCIceCandidate objects...
-            if (global.mozRTCPeerConnection) {
-                candidate = {
-                    sdpMLineIndex: candidate.sdpMLineIndex,
-                    sdpMid: candidate.sdpMid,
-                    candidate: candidate.candidate
-                };
-            }
             dataConnection.emit('candidate', candidate);
         }
     });
