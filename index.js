@@ -1,5 +1,7 @@
-var EventEmitter = require('eemitter');
-var webrtc = require('./lib/webrtc');
+var EventEmitter = require('eemitter'),
+    extend = require('extend'),
+    webrtc = require('./lib/webrtc');
+
 var RTCPeerConnection     = webrtc.RTCPeerConnection;
 var RTCIceCandidate       = webrtc.RTCIceCandidate;
 var RTCSessionDescription = webrtc.RTCSessionDescription;
@@ -15,15 +17,14 @@ function applySdpHack(sdp) {
     }
 }
 
-function RTCDataConnection() {
-    // todo: extend config
-    this.config = RTCDataConnection.defaults;
+function RTCDataConnection(config) {
+    this.config = extend(true, {}, RTCDataConnection.defaults, config);
     this._createConnection();
 }
 
 RTCDataConnection.defaults = {
     reliable: true,
-    pcConfig: {
+    peerConnection: {
         iceServers: [
             { url: 'stun:stun.l.google.com:19302' }
         ]
@@ -111,7 +112,7 @@ RTCDataConnection.prototype.createOffer = function () {
 
 RTCDataConnection.prototype._createConnection = function() {
     var dataConnection = this;
-    this.peerConnection = new RTCPeerConnection(this.config.pcConfig, this.config.constraints);
+    this.peerConnection = new RTCPeerConnection(this.config.peerConnection, this.config.constraints);
     this.peerConnection.addEventListener('icecandidate', function handleICECandidate(event) {
         var candidate = event.candidate;
         if (candidate) {
