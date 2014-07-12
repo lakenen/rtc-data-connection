@@ -1,6 +1,6 @@
 {
   "name": "rtc-data-connection",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Simple wrapper around native RTCPeerConnnection data channels",
   "author": "Cameron Lakenen <cameron@lakenen.com>",
   "main": "index",
